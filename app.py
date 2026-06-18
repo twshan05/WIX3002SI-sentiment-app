@@ -14,13 +14,41 @@ st.set_page_config(
 )
 
 def get_base64_image(image_path):
-    img_path = Path(image_path)
-    if not img_path.exists():
+    path = Path(image_path)
+    if not path.exists():
         return ""
-    with open(img_path, "rb") as f:
-        return base64.b64encode(f.read()).decode()
+    return base64.b64encode(path.read_bytes()).decode()
 
 bg_img = get_base64_image("sentiscope-bg.png")
+
+positive_face = """
+<svg class="doodle-face" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+<circle cx="60" cy="60" r="42" fill="none" stroke="#2f5f9f" stroke-width="5"/>
+<circle cx="45" cy="52" r="5" fill="#2f5f9f"/>
+<circle cx="75" cy="52" r="5" fill="#2f5f9f"/>
+<path d="M40 70 Q60 90 82 70" fill="none" stroke="#2f5f9f" stroke-width="5" stroke-linecap="round"/>
+<path d="M35 35 l-8 -8 M85 35 l8 -8" stroke="#c95c5c" stroke-width="4" stroke-linecap="round"/>
+</svg>
+"""
+
+neutral_face = """
+<svg class="doodle-face" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+<circle cx="60" cy="60" r="42" fill="none" stroke="#2f5f9f" stroke-width="5"/>
+<circle cx="45" cy="52" r="5" fill="#2f5f9f"/>
+<circle cx="75" cy="52" r="5" fill="#2f5f9f"/>
+<path d="M43 75 H78" fill="none" stroke="#2f5f9f" stroke-width="5" stroke-linecap="round"/>
+</svg>
+"""
+
+negative_face = """
+<svg class="doodle-face" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+<circle cx="60" cy="60" r="42" fill="none" stroke="#2f5f9f" stroke-width="5"/>
+<circle cx="45" cy="58" r="5" fill="#2f5f9f"/>
+<circle cx="75" cy="58" r="5" fill="#2f5f9f"/>
+<path d="M42 82 Q60 62 80 82" fill="none" stroke="#2f5f9f" stroke-width="5" stroke-linecap="round"/>
+<path d="M35 40 L52 48 M85 40 L68 48" stroke="#2f5f9f" stroke-width="5" stroke-linecap="round"/>
+</svg>
+"""
 
 st.markdown(f"""
 <style>
@@ -44,7 +72,7 @@ html, body, [data-testid="stAppViewContainer"] {{
     background-color: var(--cream) !important;
     background-image: url("data:image/png;base64,{bg_img}") !important;
     background-size: cover !important;
-    background-position: center !important;
+    background-position: center top !important;
     background-attachment: fixed !important;
 }}
 
@@ -57,8 +85,8 @@ footer {{
 }}
 
 .block-container {{
-    padding: 1.5rem 1.5rem 4rem !important;
-    max-width: 700px !important;
+    padding: 1.2rem 1.5rem 4rem !important;
+    max-width: 720px !important;
 }}
 
 .hand-card {{
@@ -69,16 +97,18 @@ footer {{
     padding: 1rem 0.8rem;
     text-align: center;
     box-shadow: 4px 5px 0px #c4b8a4;
+    min-height: 190px;
 }}
 
 .doodle-face {{
-    width: 80px;
-    height: 80px;
-    margin: 0.4rem auto;
+    width: 82px;
+    height: 82px;
+    margin: 0.5rem auto 0.4rem auto;
+    display: block;
 }}
 
 textarea {{
-    background: rgba(255, 253, 249, 0.9) !important;
+    background: rgba(255, 253, 249, 0.92) !important;
     border: 2px solid var(--border) !important;
     border-radius: 18px !important;
     color: var(--text) !important;
@@ -96,7 +126,7 @@ textarea:focus {{
     font-weight: 800 !important;
     border-radius: 50px !important;
     border: 2px solid var(--border) !important;
-    background: rgba(255, 253, 249, 0.9) !important;
+    background: rgba(255, 253, 249, 0.92) !important;
     color: var(--text) !important;
     box-shadow: 2px 2px 0px #c4b8a4 !important;
     transition: all 0.12s !important;
@@ -114,6 +144,17 @@ textarea:focus {{
     border-radius: 16px !important;
     box-shadow: 2px 3px 0px #c4b8a4 !important;
     padding: 0.6rem 0.8rem !important;
+}}
+
+[data-testid="stMetricLabel"] p {{
+    font-size: 0.65rem !important;
+    font-weight: 900 !important;
+    color: var(--muted) !important;
+}}
+
+[data-testid="stMetricValue"] {{
+    font-family: 'DM Mono', monospace !important;
+    font-size: 1rem !important;
 }}
 
 [data-testid="stAlert"] {{
@@ -138,108 +179,72 @@ label[data-testid="stWidgetLabel"] p {{
 </style>
 """, unsafe_allow_html=True)
 
-
-# SVG doodle faces
-positive_face = """
-<svg class="doodle-face" viewBox="0 0 120 120">
-<circle cx="60" cy="60" r="42" fill="none" stroke="#2f5f9f" stroke-width="5"/>
-<circle cx="45" cy="52" r="5" fill="#2f5f9f"/>
-<circle cx="75" cy="52" r="5" fill="#2f5f9f"/>
-<path d="M40 70 Q60 90 82 70" fill="none" stroke="#2f5f9f" stroke-width="5" stroke-linecap="round"/>
-<path d="M30 30 l-8 -8 M90 28 l8 -8" stroke="#c95c5c" stroke-width="4" stroke-linecap="round"/>
-</svg>
-"""
-
-neutral_face = """
-<svg class="doodle-face" viewBox="0 0 120 120">
-<circle cx="60" cy="60" r="42" fill="none" stroke="#2f5f9f" stroke-width="5"/>
-<circle cx="45" cy="52" r="5" fill="#2f5f9f"/>
-<circle cx="75" cy="52" r="5" fill="#2f5f9f"/>
-<path d="M43 75 H78" fill="none" stroke="#2f5f9f" stroke-width="5" stroke-linecap="round"/>
-</svg>
-"""
-
-negative_face = """
-<svg class="doodle-face" viewBox="0 0 120 120">
-<circle cx="60" cy="60" r="42" fill="none" stroke="#2f5f9f" stroke-width="5"/>
-<circle cx="45" cy="58" r="5" fill="#2f5f9f"/>
-<circle cx="75" cy="58" r="5" fill="#2f5f9f"/>
-<path d="M42 82 Q60 62 80 82" fill="none" stroke="#2f5f9f" stroke-width="5" stroke-linecap="round"/>
-<path d="M35 40 L52 48 M85 40 L68 48" stroke="#2f5f9f" stroke-width="5" stroke-linecap="round"/>
-</svg>
-"""
-
-
 if "input_text" not in st.session_state:
     st.session_state.input_text = ""
 
-
-# Hero
-st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
-
 st.markdown("""
-<h1 style='text-align:center;font-size:3.4rem;font-weight:900;color:#2a2520;
-letter-spacing:-0.04em;margin-bottom:0.2rem;font-family:Nunito,sans-serif'>
-Senti<span style='color:#2f5f9f'>Scope</span> ✦
+<div style="height:0.5rem"></div>
+
+<h1 style="text-align:center;font-size:3.4rem;font-weight:900;color:#2a2520;
+letter-spacing:-0.04em;margin-bottom:0.2rem;font-family:Nunito,sans-serif">
+Senti<span style="color:#2f5f9f">Scope</span> ✦
 </h1>
-<p style='text-align:center;color:#8a7e72;font-style:italic;margin-bottom:1rem'>
+
+<p style="text-align:center;color:#8a7e72;font-style:italic;margin-bottom:1rem">
 Type a review · discover its emotional tone
 </p>
 """, unsafe_allow_html=True)
 
 st.divider()
 
-
-# Cards
 mc1, mc2, mc3 = st.columns(3)
 
 with mc1:
     st.markdown(f"""
-    <div class="hand-card">
-        <div style='font-size:0.6rem;font-weight:900;color:#4e9268;
-        letter-spacing:0.1em;background:#d4edda;border-radius:50px;
-        padding:3px 10px;display:inline-block'>POSITIVE</div>
-        {positive_face}
-        <div style='font-size:0.7rem;color:#8a7e72;font-style:italic'>
-        "This is absolutely amazing!"
-        </div>
+<div class="hand-card">
+    <div style="font-size:0.6rem;font-weight:900;color:#4e9268;
+    letter-spacing:0.1em;background:#d4edda;border-radius:50px;
+    padding:3px 10px;display:inline-block">POSITIVE</div>
+    {positive_face}
+    <div style="font-size:0.72rem;color:#8a7e72;font-style:italic">
+    "This is absolutely amazing!"
     </div>
-    """, unsafe_allow_html=True)
+</div>
+""", unsafe_allow_html=True)
 
 with mc2:
     st.markdown(f"""
-    <div class="hand-card">
-        <div style='font-size:0.6rem;font-weight:900;color:#c49a2a;
-        letter-spacing:0.1em;background:#fef9e7;border-radius:50px;
-        padding:3px 10px;display:inline-block'>NEUTRAL</div>
-        {neutral_face}
-        <div style='font-size:0.7rem;color:#8a7e72;font-style:italic'>
-        "It was okay, I guess."
-        </div>
+<div class="hand-card">
+    <div style="font-size:0.6rem;font-weight:900;color:#c49a2a;
+    letter-spacing:0.1em;background:#fef9e7;border-radius:50px;
+    padding:3px 10px;display:inline-block">NEUTRAL</div>
+    {neutral_face}
+    <div style="font-size:0.72rem;color:#8a7e72;font-style:italic">
+    "It was okay, I guess."
     </div>
-    """, unsafe_allow_html=True)
+</div>
+""", unsafe_allow_html=True)
 
 with mc3:
     st.markdown(f"""
-    <div class="hand-card">
-        <div style='font-size:0.6rem;font-weight:900;color:#c95c5c;
-        letter-spacing:0.1em;background:#fdecea;border-radius:50px;
-        padding:3px 10px;display:inline-block'>NEGATIVE</div>
-        {negative_face}
-        <div style='font-size:0.7rem;color:#8a7e72;font-style:italic'>
-        "Terrible — never again!"
-        </div>
+<div class="hand-card">
+    <div style="font-size:0.6rem;font-weight:900;color:#c95c5c;
+    letter-spacing:0.1em;background:#fdecea;border-radius:50px;
+    padding:3px 10px;display:inline-block">NEGATIVE</div>
+    {negative_face}
+    <div style="font-size:0.72rem;color:#8a7e72;font-style:italic">
+    "Terrible — never again!"
     </div>
-    """, unsafe_allow_html=True)
-
+</div>
+""", unsafe_allow_html=True)
 
 st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
 
-
-# Example buttons
 st.markdown("""
-<p style='font-size:0.72rem;font-weight:900;color:#8a7e72;text-transform:uppercase;
-letter-spacing:0.12em;margin-bottom:0.3rem'>✏️ Try an example</p>
+<p style="font-size:0.72rem;font-weight:900;color:#8a7e72;text-transform:uppercase;
+letter-spacing:0.12em;margin-bottom:0.3rem">
+✏️ Try an example
+</p>
 """, unsafe_allow_html=True)
 
 c1, c2, c3 = st.columns(3)
@@ -259,11 +264,8 @@ with c3:
         st.session_state.input_text = "Terrible service, never again."
         st.rerun()
 
-
 st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
 
-
-# Input
 user_input = st.text_area(
     "YOUR REVIEW",
     value=st.session_state.input_text,
@@ -273,8 +275,6 @@ user_input = st.text_area(
 
 analyse_btn = st.button("Analyse Sentiment →", use_container_width=True)
 
-
-# Analysis
 def analyse(text):
     sid = SentimentIntensityAnalyzer()
     s = sid.polarity_scores(text)
@@ -288,9 +288,27 @@ def analyse(text):
     label = max(scores, key=scores.get)
 
     meta = {
-        "Positive": (positive_face, "#4e9268", "#d4edda", "#a8d5b5", "Your review sounds happy and satisfied."),
-        "Negative": (negative_face, "#c95c5c", "#fdecea", "#e8b0b0", "Your review sounds frustrated or unhappy."),
-        "Neutral":  (neutral_face, "#c49a2a", "#fef9e7", "#e8d090", "Your review sounds mostly neutral."),
+        "Positive": (
+            positive_face,
+            "#4e9268",
+            "#fffdf2",
+            "#f0cc5f",
+            "Your review sounds happy and satisfied."
+        ),
+        "Negative": (
+            negative_face,
+            "#c95c5c",
+            "#fffdf2",
+            "#f0cc5f",
+            "Your review sounds frustrated or unhappy."
+        ),
+        "Neutral": (
+            neutral_face,
+            "#c49a2a",
+            "#fffdf2",
+            "#f0cc5f",
+            "Your review sounds mostly neutral."
+        ),
     }
 
     face, color, bg, border, message = meta[label]
@@ -305,7 +323,6 @@ def analyse(text):
         **s
     )
 
-
 if analyse_btn:
     if not user_input.strip():
         st.warning("Please enter some text first!")
@@ -315,36 +332,38 @@ if analyse_btn:
         st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
 
         st.markdown(f"""
-        <div style='background:{r["bg"]};border:2px solid {r["border"]};
-        border-radius:24px;padding:1.2rem 1.5rem;
-        box-shadow:4px 5px 0 {r["border"]};margin-bottom:1rem;
-        display:flex;align-items:center;gap:1rem'>
+<div style="background:{r['bg']};border:2px solid {r['border']};
+border-radius:24px;padding:1.2rem 1.5rem;
+box-shadow:4px 5px 0 {r['border']};margin-bottom:1rem;
+display:flex;align-items:center;gap:1rem">
 
-            <div style='width:90px;min-width:90px'>
-                {r["face"]}
-            </div>
+    <div style="width:90px;min-width:90px">
+        {r['face']}
+    </div>
 
-            <div>
-                <div style='font-size:2rem;font-weight:900;color:{r["color"]};
-                font-family:Nunito,sans-serif'>
-                    {r["label"]}
-                    <code style='font-size:0.8rem;background:rgba(255,255,255,0.75);
-                    padding:4px 8px;border-radius:8px;color:#2a2520'>
-                    compound {r["compound"]:+.3f}
-                    </code>
-                </div>
-
-                <div style='font-size:0.95rem;color:#5f554b;margin-top:0.2rem'>
-                    {r["message"]}
-                </div>
-            </div>
+    <div>
+        <div style="font-size:2rem;font-weight:900;color:{r['color']};
+        font-family:Nunito,sans-serif">
+            {r['label']}
+            <code style="font-size:0.8rem;background:rgba(255,255,255,0.75);
+            padding:4px 8px;border-radius:8px;color:#2a2520">
+            compound {r['compound']:+.3f}
+            </code>
         </div>
-        """, unsafe_allow_html=True)
+
+        <div style="font-size:0.95rem;color:#5f554b;margin-top:0.2rem">
+            {r['message']}
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
         st.markdown("""
-        <p style='font-size:0.7rem;font-weight:900;color:#8a7e72;text-transform:uppercase;
-        letter-spacing:0.12em;margin-bottom:0.2rem'>Score Breakdown</p>
-        """, unsafe_allow_html=True)
+<p style="font-size:0.7rem;font-weight:900;color:#8a7e72;text-transform:uppercase;
+letter-spacing:0.12em;margin-bottom:0.2rem">
+Score Breakdown
+</p>
+""", unsafe_allow_html=True)
 
         bl, br = st.columns([1, 4])
         with bl:
@@ -380,7 +399,6 @@ if analyse_btn:
 
         st.info(si_map[r["label"]])
 
-
 st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
 
 with st.expander("🔬 How this works"):
@@ -394,10 +412,9 @@ This demo uses **VADER** sentiment scoring.
 | Rule | Highest pos / neu / neg score wins |
 """)
 
-
 st.markdown("""
-<p style='text-align:center;font-size:0.7rem;color:#b0a898;
-font-style:italic;margin-top:2rem'>
+<p style="text-align:center;font-size:0.7rem;color:#b0a898;
+font-style:italic;margin-top:2rem">
 Social Informatics Group Assignment · SentiScope · WIX3002
 </p>
 """, unsafe_allow_html=True)
