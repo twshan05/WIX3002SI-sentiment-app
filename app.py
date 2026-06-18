@@ -1,12 +1,9 @@
 import streamlit as st
-import numpy as np
 import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
-# ── Download required NLTK data ──────────────────────────────────────────────
 nltk.download("vader_lexicon", quiet=True)
 
-# ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="SentiScope · Social Informatics",
     page_icon="🔍",
@@ -14,391 +11,330 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-# ── Custom CSS ────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Mono:ital,wght@0,400;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=DM+Mono:wght@400&display=swap');
 
-/* ── Root tokens ── */
 :root {
-    --bg:        #0d1117;
-    --surface:   #161b22;
-    --border:    #30363d;
-    --accent:    #58a6ff;
-    --pos:       #3fb950;
-    --neg:       #f85149;
-    --neu:       #d29922;
-    --text:      #e6edf3;
-    --muted:     #8b949e;
+    --bg:      #faf7f2;
+    --card:    #ffffff;
+    --border:  #e8e0d5;
+    --accent:  #4a6fa5;
+    --pos:     #5a9e6f;
+    --neg:     #d96b6b;
+    --neu:     #d4a843;
+    --text:    #2d2d2d;
+    --muted:   #8a8078;
 }
 
-/* ── Global resets ── */
 html, body, [data-testid="stAppViewContainer"] {
     background: var(--bg) !important;
     color: var(--text) !important;
-    font-family: 'Space Grotesk', sans-serif !important;
+    font-family: 'Nunito', sans-serif !important;
 }
-[data-testid="stHeader"] { background: transparent !important; }
-[data-testid="stToolbar"] { display: none; }
+[data-testid="stHeader"], [data-testid="stToolbar"] { display: none !important; }
 footer { visibility: hidden; }
-.block-container { padding: 2rem 1.5rem 4rem !important; max-width: 720px !important; }
+.block-container { padding: 2rem 1.5rem 4rem !important; max-width: 700px !important; }
 
-/* ── Hero ── */
-.hero {
-    text-align: center;
-    padding: 2.5rem 0 1.8rem;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 2rem;
-}
-.hero-eyebrow {
-    font-size: 0.72rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 0.6rem;
-}
-.hero-title {
-    font-size: 2.6rem;
-    font-weight: 700;
-    line-height: 1.15;
-    color: var(--text);
-    margin: 0 0 0.5rem;
-}
-.hero-title span { color: var(--accent); }
-.hero-sub {
-    font-size: 0.95rem;
-    color: var(--muted);
-    max-width: 480px;
-    margin: 0 auto;
-}
-
-/* ── Input card ── */
-.input-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.5rem 1.8rem;
-    margin-bottom: 1.5rem;
-}
-.input-label {
-    font-size: 0.78rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 0.6rem;
-}
-
-/* ── Streamlit textarea override ── */
+/* textarea */
 textarea {
-    background: var(--bg) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 8px !important;
+    background: var(--card) !important;
+    border: 2px solid var(--border) !important;
+    border-radius: 16px !important;
     color: var(--text) !important;
-    font-family: 'DM Mono', monospace !important;
-    font-size: 0.92rem !important;
-    resize: vertical !important;
+    font-family: 'Nunito', sans-serif !important;
+    font-size: 1rem !important;
 }
-textarea:focus { border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(88,166,255,0.12) !important; }
+textarea:focus { border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(74,111,165,0.1) !important; }
 
-/* ── Streamlit button ── */
+/* button */
 .stButton > button {
     background: var(--accent) !important;
-    color: #0d1117 !important;
+    color: white !important;
     border: none !important;
-    border-radius: 8px !important;
-    font-family: 'Space Grotesk', sans-serif !important;
-    font-weight: 600 !important;
-    font-size: 0.92rem !important;
-    padding: 0.55rem 1.8rem !important;
-    cursor: pointer !important;
-    transition: opacity 0.15s !important;
+    border-radius: 50px !important;
+    font-family: 'Nunito', sans-serif !important;
+    font-weight: 800 !important;
+    font-size: 1rem !important;
+    padding: 0.6rem 2rem !important;
     width: 100%;
+    letter-spacing: 0.02em;
 }
 .stButton > button:hover { opacity: 0.88 !important; }
 
-/* ── Result card ── */
-.result-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.6rem 1.8rem;
-    margin-bottom: 1.5rem;
-    animation: fadeUp 0.35s ease;
+/* hero */
+.hero {
+    text-align: center;
+    padding: 2rem 0 1.5rem;
 }
-@keyframes fadeUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
+.hero-title {
+    font-size: 2.4rem;
+    font-weight: 900;
+    color: var(--text);
+    margin: 0.5rem 0 0.3rem;
 }
-.result-top {
+.hero-title span { color: var(--accent); }
+.hero-sub {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin: 0 auto;
+    max-width: 420px;
+    line-height: 1.6;
+}
+
+/* mascot row */
+.mascot-row {
     display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1.2rem;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 1.5rem 0 2rem;
+    flex-wrap: wrap;
 }
-.result-emoji { font-size: 2.8rem; line-height: 1; }
-.result-label {
-    font-size: 1.6rem;
+.mascot-card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    padding: 1rem 1.2rem;
+    text-align: center;
+    width: 140px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.mascot-face { font-size: 2.8rem; line-height: 1; margin-bottom: 0.4rem; }
+.mascot-name { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.3rem; }
+.mascot-name.pos { color: var(--pos); }
+.mascot-name.neg { color: var(--neg); }
+.mascot-name.neu { color: var(--neu); }
+.mascot-quote { font-size: 0.72rem; color: var(--muted); font-style: italic; line-height: 1.4; }
+
+/* input card */
+.input-card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    padding: 1.4rem 1.6rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.input-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+}
+
+/* example pills */
+.pills-label {
+    font-size: 0.72rem;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
 }
+.pills { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+.pill {
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: 50px;
+    padding: 0.35rem 0.9rem;
+    font-size: 0.78rem;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.pill:hover { border-color: var(--accent); color: var(--accent); background: #eef2f8; }
+
+/* result card */
+.result-card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: 20px;
+    padding: 1.6rem;
+    margin-top: 1.2rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    animation: pop 0.3s ease;
+}
+@keyframes pop { from { opacity:0; transform: scale(0.97); } to { opacity:1; transform: scale(1); } }
+
+.result-top { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.2rem; }
+.result-emoji { font-size: 3rem; }
+.result-label { font-size: 1.8rem; font-weight: 900; }
 .result-label.pos { color: var(--pos); }
 .result-label.neg { color: var(--neg); }
 .result-label.neu { color: var(--neu); }
+.result-compound { font-size: 0.82rem; color: var(--muted); margin-top: 0.1rem; }
+.result-compound span { font-family: 'DM Mono', monospace; color: var(--text); font-weight: 600; }
 
-/* ── Score bars ── */
-.score-section { margin-top: 0.2rem; }
-.score-label-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.78rem;
-    color: var(--muted);
-    margin-bottom: 0.25rem;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-.bar-outer {
-    background: #21262d;
-    border-radius: 99px;
-    height: 7px;
-    margin-bottom: 0.65rem;
-    overflow: hidden;
-}
-.bar-inner {
-    height: 100%;
-    border-radius: 99px;
-    transition: width 0.6s ease;
-}
+/* bars */
+.bar-row { margin-bottom: 0.55rem; }
+.bar-meta { display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 700; color: var(--muted); margin-bottom: 0.2rem; }
+.bar-outer { background: #f0ece6; border-radius: 99px; height: 8px; overflow: hidden; }
+.bar-inner { height: 100%; border-radius: 99px; }
 .bar-pos { background: var(--pos); }
 .bar-neg { background: var(--neg); }
 .bar-neu { background: var(--neu); }
 
-/* ── VADER breakdown ── */
-.vader-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.6rem;
-    margin-top: 1.2rem;
-    padding-top: 1.2rem;
-    border-top: 1px solid var(--border);
-}
-.vader-cell {
-    background: #21262d;
-    border-radius: 8px;
-    padding: 0.75rem 0.5rem;
-    text-align: center;
-}
-.vader-cell-val {
-    font-size: 1.15rem;
-    font-weight: 600;
-    font-family: 'DM Mono', monospace;
-    color: var(--text);
-}
-.vader-cell-key {
-    font-size: 0.68rem;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-top: 0.2rem;
-}
+/* vader grid */
+.vader-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 0.5rem; margin-top: 1.1rem; padding-top: 1.1rem; border-top: 2px solid var(--border); }
+.vader-cell { background: var(--bg); border-radius: 12px; padding: 0.65rem 0.4rem; text-align: center; }
+.vader-val { font-size: 1.05rem; font-weight: 800; font-family: 'DM Mono', monospace; color: var(--text); }
+.vader-key { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-top: 0.15rem; font-weight: 700; }
 
-/* ── SI context tag ── */
-.si-context {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.7rem 1rem;
-    background: rgba(88,166,255,0.07);
-    border: 1px solid rgba(88,166,255,0.2);
-    border-radius: 8px;
-    font-size: 0.82rem;
-    color: var(--muted);
-    margin-top: 0.8rem;
-}
-.si-context strong { color: var(--accent); }
+/* si note */
+.si-note { background: #eef2f8; border: 2px solid #c8d8f0; border-radius: 12px; padding: 0.7rem 1rem; font-size: 0.82rem; color: #4a6fa5; margin-top: 0.9rem; line-height: 1.5; }
 
-/* ── Example pills ── */
-.pills { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.8rem; }
-.pill {
-    background: #21262d;
-    border: 1px solid var(--border);
-    border-radius: 99px;
-    padding: 0.3rem 0.85rem;
-    font-size: 0.78rem;
-    color: var(--muted);
-    cursor: pointer;
-}
-
-/* ── Footer credits ── */
-.credits {
-    text-align: center;
-    font-size: 0.75rem;
-    color: #484f58;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--border);
-    margin-top: 2rem;
-}
+/* footer */
+.credits { text-align: center; font-size: 0.72rem; color: #c0b8b0; padding-top: 1.5rem; margin-top: 2rem; border-top: 2px solid var(--border); }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Hero section ─────────────────────────────────────────────────────────────
+# ── session state for text input ─────────────────────────────────────────────
+if "input_text" not in st.session_state:
+    st.session_state.input_text = ""
+
+# ── Hero ──────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="hero">
-    <div class="hero-eyebrow">Social Informatics · NLP Sentiment Analysis</div>
-    <div class="hero-title">Senti<span>Scope</span></div>
+    <div style="font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:#8a8078;margin-bottom:0.4rem;">
+        Social Informatics · WIX3002
+    </div>
+    <div class="hero-title">Senti<span>Scope</span> ✦</div>
     <div class="hero-sub">
-        Analyse how language carries emotion — powered by VADER + TF-IDF,
-        the same pipeline your team trained on real-world review data.
+        Type a review and discover its emotional tone —
+        how language shapes human–technology interaction.
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ── Input area ────────────────────────────────────────────────────────────────
-st.markdown('<div class="input-card"><div class="input-label">Enter a review or sentence</div>', unsafe_allow_html=True)
+# ── Mascots ───────────────────────────────────────────────────────────────────
+st.markdown("""
+<div class="mascot-row">
+    <div class="mascot-card">
+        <div class="mascot-face">🥰</div>
+        <div class="mascot-name pos">Positive</div>
+        <div class="mascot-quote">"This is absolutely amazing!"</div>
+    </div>
+    <div class="mascot-card">
+        <div class="mascot-face">😐</div>
+        <div class="mascot-name neu">Neutral</div>
+        <div class="mascot-quote">"It was okay, I guess."</div>
+    </div>
+    <div class="mascot-card">
+        <div class="mascot-face">😤</div>
+        <div class="mascot-name neg">Negative</div>
+        <div class="mascot-quote">"Terrible — never again!"</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# ── Example pills (Streamlit buttons) ────────────────────────────────────────
+st.markdown('<div class="pills-label">Try an example</div>', unsafe_allow_html=True)
+
+col1, col2, col3 = st.columns(3)
+with col1:
+    if st.button("😍 Best experience ever!"):
+        st.session_state.input_text = "Best experience ever!"
+        st.rerun()
+with col2:
+    if st.button("😐 It was okay, nothing special."):
+        st.session_state.input_text = "It was okay, nothing special."
+        st.rerun()
+with col3:
+    if st.button("😤 Terrible service, never again."):
+        st.session_state.input_text = "Terrible service, never again."
+        st.rerun()
+
+# ── Input ─────────────────────────────────────────────────────────────────────
+st.markdown('<div style="height:0.8rem"></div>', unsafe_allow_html=True)
 
 user_input = st.text_area(
-    label="",
-    placeholder="e.g. The service was absolutely fantastic — I'll definitely come back!",
+    label="Your review",
+    value=st.session_state.input_text,
+    placeholder="e.g. The food was fantastic and the staff were so friendly!",
     height=110,
     key="review_input",
-    label_visibility="collapsed",
+    label_visibility="visible",
 )
 
 analyse_clicked = st.button("Analyse Sentiment →")
 
-st.markdown("""
-<div class="pills">
-    <span class="pill">😍 "Best experience ever!"</span>
-    <span class="pill">😐 "It was okay, nothing special."</span>
-    <span class="pill">😤 "Terrible service, never again."</span>
-</div>
-</div>
-""", unsafe_allow_html=True)
-
-# ── Analysis logic ────────────────────────────────────────────────────────────
-def analyse_vader(text: str):
+# ── Analysis ──────────────────────────────────────────────────────────────────
+def analyse(text):
     sid = SentimentIntensityAnalyzer()
-    scores = sid.polarity_scores(text)
-    compound = scores["compound"]
-
-    # Map compound → class (mirrors common VADER threshold convention)
-    if compound >= 0.05:
-        label = "Positive"
-        css_cls = "pos"
-        emoji = "😄"
-    elif compound <= -0.05:
-        label = "Negative"
-        css_cls = "neg"
-        emoji = "😞"
+    s = sid.polarity_scores(text)
+    c = s["compound"]
+    if c >= 0.05:
+        return dict(label="Positive", cls="pos", emoji="🥰", **s)
+    elif c <= -0.05:
+        return dict(label="Negative", cls="neg", emoji="😤", **s)
     else:
-        label = "Neutral"
-        css_cls = "neu"
-        emoji = "😐"
-
-    # Normalise pos / neg / neu to sum to 1 for the bars
-    raw_pos = scores["pos"]
-    raw_neg = scores["neg"]
-    raw_neu = scores["neu"]
-
-    return {
-        "label": label,
-        "css_cls": css_cls,
-        "emoji": emoji,
-        "compound": compound,
-        "pos": raw_pos,
-        "neg": raw_neg,
-        "neu": raw_neu,
-    }
-
+        return dict(label="Neutral",  cls="neu", emoji="😐", **s)
 
 if analyse_clicked and user_input.strip():
-    result = analyse_vader(user_input.strip())
+    r = analyse(user_input.strip())
+    pp, np_, nu = int(r["pos"]*100), int(r["neg"]*100), int(r["neu"]*100)
 
-    pos_pct = int(result["pos"] * 100)
-    neg_pct = int(result["neg"] * 100)
-    neu_pct = int(result["neu"] * 100)
-    compound_display = f"{result['compound']:+.3f}"
-
-    # SI context blurb
-    si_blurbs = {
-        "Positive": "People expressing satisfaction tend to engage more with platforms — a key insight in <strong>Social Informatics</strong> when studying human–technology interaction.",
-        "Negative": "Negative feedback signals friction in the user–system relationship — exactly what <strong>Social Informatics</strong> investigates to improve digital experiences.",
-        "Neutral": "Neutral language often reflects informational or transactional intent — important context when modelling online behaviour in <strong>Social Informatics</strong> research.",
+    si_map = {
+        "Positive": "People expressing satisfaction tend to engage more with platforms — a key insight in <b>Social Informatics</b> when studying human–technology interaction.",
+        "Negative": "Negative feedback signals friction in the user–system relationship — exactly what <b>Social Informatics</b> investigates to improve digital experiences.",
+        "Neutral":  "Neutral language often reflects transactional intent — important context when modelling online behaviour in <b>Social Informatics</b> research.",
     }
 
     st.markdown(f"""
     <div class="result-card">
         <div class="result-top">
-            <div class="result-emoji">{result['emoji']}</div>
+            <div class="result-emoji">{r['emoji']}</div>
             <div>
-                <div class="result-label {result['css_cls']}">{result['label']}</div>
-                <div style="font-size:0.82rem;color:var(--muted);">VADER compound: <span style="font-family:'DM Mono',monospace;color:var(--text)">{compound_display}</span></div>
+                <div class="result-label {r['cls']}">{r['label']}</div>
+                <div class="result-compound">VADER compound: <span>{r['compound']:+.3f}</span></div>
             </div>
         </div>
 
-        <div class="score-section">
-            <div class="score-label-row"><span>Positive</span><span>{pos_pct}%</span></div>
-            <div class="bar-outer"><div class="bar-inner bar-pos" style="width:{pos_pct}%"></div></div>
-
-            <div class="score-label-row"><span>Neutral</span><span>{neu_pct}%</span></div>
-            <div class="bar-outer"><div class="bar-inner bar-neu" style="width:{neu_pct}%"></div></div>
-
-            <div class="score-label-row"><span>Negative</span><span>{neg_pct}%</span></div>
-            <div class="bar-outer"><div class="bar-inner bar-neg" style="width:{neg_pct}%"></div></div>
+        <div class="bar-row">
+            <div class="bar-meta"><span>Positive</span><span>{pp}%</span></div>
+            <div class="bar-outer"><div class="bar-inner bar-pos" style="width:{pp}%"></div></div>
+        </div>
+        <div class="bar-row">
+            <div class="bar-meta"><span>Neutral</span><span>{nu}%</span></div>
+            <div class="bar-outer"><div class="bar-inner bar-neu" style="width:{nu}%"></div></div>
+        </div>
+        <div class="bar-row">
+            <div class="bar-meta"><span>Negative</span><span>{np_}%</span></div>
+            <div class="bar-outer"><div class="bar-inner bar-neg" style="width:{np_}%"></div></div>
         </div>
 
         <div class="vader-grid">
-            <div class="vader-cell">
-                <div class="vader-cell-val" style="color:var(--pos)">{result['pos']:.3f}</div>
-                <div class="vader-cell-key">Positive</div>
-            </div>
-            <div class="vader-cell">
-                <div class="vader-cell-val" style="color:var(--neg)">{result['neg']:.3f}</div>
-                <div class="vader-cell-key">Negative</div>
-            </div>
-            <div class="vader-cell">
-                <div class="vader-cell-val" style="color:var(--neu)">{result['neu']:.3f}</div>
-                <div class="vader-cell-key">Neutral</div>
-            </div>
-            <div class="vader-cell">
-                <div class="vader-cell-val">{result['compound']:+.3f}</div>
-                <div class="vader-cell-key">Compound</div>
-            </div>
+            <div class="vader-cell"><div class="vader-val" style="color:var(--pos)">{r['pos']:.3f}</div><div class="vader-key">Positive</div></div>
+            <div class="vader-cell"><div class="vader-val" style="color:var(--neg)">{r['neg']:.3f}</div><div class="vader-key">Negative</div></div>
+            <div class="vader-cell"><div class="vader-val" style="color:var(--neu)">{r['neu']:.3f}</div><div class="vader-key">Neutral</div></div>
+            <div class="vader-cell"><div class="vader-val">{r['compound']:+.3f}</div><div class="vader-key">Compound</div></div>
         </div>
 
-        <div class="si-context">
-            <span>💡</span>
-            <span>{si_blurbs[result['label']]}</span>
-        </div>
+        <div class="si-note">💡 {si_map[r['label']]}</div>
     </div>
     """, unsafe_allow_html=True)
 
-elif analyse_clicked and not user_input.strip():
-    st.warning("Please enter some text before analysing.")
+elif analyse_clicked:
+    st.warning("Please enter some text first!")
 
-# ── How it works (collapsible) ────────────────────────────────────────────────
+# ── How it works ──────────────────────────────────────────────────────────────
 with st.expander("🔬 How this works"):
     st.markdown("""
     This demo uses **VADER** (Valence Aware Dictionary and sEntiment Reasoner) — the same
-    sentiment extractor your team integrated into the full ML pipeline in Google Colab.
+    sentiment extractor integrated into our full ML pipeline.
 
     | Step | Method |
     |------|--------|
     | Feature extraction | TF-IDF (unigrams + bigrams) + VADER scores |
-    | Best classifier | Logistic Regression (`saga` solver, balanced classes) |
+    | Best classifier | Logistic Regression (saga solver, balanced classes) |
     | Live demo engine | VADER real-time scoring |
 
-    **VADER compound score** ranges from −1 (most negative) to +1 (most positive).
-    A threshold of ±0.05 separates positive / negative from neutral — matching the
-    labelling convention used during training.
-
-    **Why Social Informatics?** SI examines how technology shapes and is shaped by social
-    behaviour. Sentiment analysis is one concrete tool for studying those dynamics at scale —
-    from brand reputation to public health communication.
+    The **compound score** ranges from −1 (most negative) to +1 (most positive).
+    Threshold of ±0.05 separates classes — matching the training convention.
     """)
 
-# ── Footer ────────────────────────────────────────────────────────────────────
-st.markdown("""
-<div class="credits">
-    Social Informatics Group Assignment · SentiScope UI · Built with Streamlit + VADER
-</div>
-""", unsafe_allow_html=True)
+st.markdown('<div class="credits">Social Informatics Group Assignment · SentiScope · WIX3002</div>', unsafe_allow_html=True)
