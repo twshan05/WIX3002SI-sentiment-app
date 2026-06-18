@@ -110,16 +110,10 @@ if "input_text" not in st.session_state:
 # ── Hero ──────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div style="text-align:center;padding:2rem 0 1rem">
-    <div style="font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;color:#8a8078;margin-bottom:0.4rem">
-        Social Informatics · WIX3002
-    </div>
-    <div style="font-size:2.4rem;font-weight:900;color:#2d2d2d;margin-bottom:0.3rem">
+<div style="font-size:3.2rem;font-weight:900;color:#2d2d2d;margin-bottom:0.3rem">
         Senti<span style="color:#4a6fa5">Scope</span> ✦
     </div>
-    <div style="font-size:0.88rem;color:#8a8078;max-width:400px;margin:0 auto;line-height:1.6">
-        Type a review and discover its emotional tone —
-        how language shapes human–technology interaction.
-    </div>
+
 </div>
 """, unsafe_allow_html=True)
 
@@ -177,13 +171,16 @@ analyse_btn = st.button("Analyse Sentiment →", use_container_width=True)
 def analyse(text):
     sid = SentimentIntensityAnalyzer()
     s = sid.polarity_scores(text)
-    c = s["compound"]
-    if c >= 0.05:
-        return dict(label="Positive", emoji="🥰", color="#5a9e6f", **s)
-    elif c <= -0.05:
-        return dict(label="Negative", emoji="😤", color="#d96b6b", **s)
-    else:
-        return dict(label="Neutral",  emoji="😐", color="#d4a843", **s)
+    # Use highest score among pos/neg/neu to determine label
+    scores = {"Positive": s["pos"], "Negative": s["neg"], "Neutral": s["neu"]}
+    label = max(scores, key=scores.get)
+    meta = {
+        "Positive": ("🥰", "#5a9e6f"),
+        "Negative": ("😤", "#d96b6b"),
+        "Neutral":  ("😐", "#d4a843"),
+    }
+    emoji, color = meta[label]
+    return dict(label=label, emoji=emoji, color=color, **s)
 
 if analyse_btn:
     if not user_input.strip():
